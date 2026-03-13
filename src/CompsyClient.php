@@ -45,6 +45,94 @@ class CompsyClient
     }
 
     /**
+     * Fetch the detail page for a result and populate its registration periods.
+     *
+     * @param  CompsyResult $result  A result obtained from searchByRegistrationNumber().
+     * @return CompsyResult          The same result, enriched with registration periods.
+     *
+     * @throws \RuntimeException on request failure
+     */
+    public function fetchDetail(CompsyResult $result): CompsyResult
+    {
+        $html = $this->get($result->detailUrl);
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+        libxml_clear_errors();
+
+        $xpath   = new \DOMXPath($dom);
+        $listing = $xpath->query('//*[contains(@class, "year-listing-text")]');
+
+        $periods = [];
+
+        if ($listing !== false && $listing->length > 0) {
+            foreach ($listing as $node) {
+                /** @var \DOMElement $node */
+                $spans = $xpath->query('.//span', $node);
+
+                if ($spans === false || $spans->length < 2) {
+                    continue;
+                }
+
+                $rawStart = trim($spans->item(0)->textContent);
+                $rawEnd   = trim($spans->item(1)->textContent);
+
+                $start = \DateTimeImmutable::createFromFormat('d-m-Y', $rawStart);
+                $end   = \DateTimeImmutable::createFromFormat('d-m-Y', $rawEnd);
+
+                if ($start === false || $end === false) {
+                    continue;
+                }
+
+                // DatePeriod's end is exclusive, so add 1 day to include the actual end date
+                $periods[] = new \DatePeriod($start, new \DateInterval('P1D'), $end->modify('+1 day'));
+            }
+        }
+
+        $result->setRegistrationPeriods($periods);
+
+        return $result;
+    }
+
+    /**
+     * Execute a GET request and return the response body.
+     *
+     * @param  string $url
+     * @return string
+     *
+     * @throws \RuntimeException
+     */
+    private function get(string $url): string
+    {
+        $ch = curl_init();
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => self::TIMEOUT,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; CompsyClient/1.0)',
+        ]);
+
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close($ch);
+
+        if ($response === false) {
+            throw new \RuntimeException("cURL request failed: {$error}");
+        }
+
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new \RuntimeException("Unexpected HTTP status code: {$httpCode}");
+        }
+
+        return (string) $response;
+    }
+
+    /**
      * Execute a POST request and return the response body.
      *
      * @param  string                $url

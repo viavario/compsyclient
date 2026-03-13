@@ -15,4 +15,16 @@ if ($result !== null) {
     echo "Status:     " . $result->status    . PHP_EOL;
     echo "Is active:  " . ($result->isActive() ? 'Yes' : 'No') . PHP_EOL;
     echo str_repeat('-', 40) . PHP_EOL;
+
+    echo "Registration periods:" . PHP_EOL;
+    foreach ($result->getRegistrationPeriods() as $period) {
+        $start = $period->getStartDate()->format('Y-m-d');
+        $end   = $period->getEndDate()->format('Y-m-d');
+        echo "  {$start} - {$end}" . PHP_EOL;
+    }
+
+    $lastEnd = $result->getLastRegistrationEndDate();
+    echo "Last registration end: " . ($lastEnd ? $lastEnd->format('Y-m-d') : 'N/A') . PHP_EOL;
+} else {
+    echo "No psychologist found with the given registration number." . PHP_EOL;
 }

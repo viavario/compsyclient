@@ -9,7 +9,7 @@ namespace viavario\compsyclient;
  */
 class CompsyResult
 {
-    /** @var string */
+        /** @var string */
     public $name;
 
     /** @var string */
@@ -17,6 +17,9 @@ class CompsyResult
 
     /** @var string */
     public $status;
+
+    /** @var \DatePeriod[] */
+    private $registrationPeriods = [];
 
     /**
      * @param string $name      The psychologist's full name.
@@ -28,6 +31,55 @@ class CompsyResult
         $this->name      = $name;
         $this->detailUrl = $detailUrl;
         $this->status    = $status;
+    }
+
+    /**
+     * Set the registration periods. Called by CompsyClient::fetchDetail().
+     *
+     * @param  \DatePeriod[] $periods
+     * @return void
+     */
+    public function setRegistrationPeriods(array $periods): void
+    {
+        $this->registrationPeriods = $periods;
+    }
+
+    /**
+     * Return all registration periods for this psychologist.
+     * Populate by calling CompsyClient::fetchDetail() first.
+     *
+     * @return \DatePeriod[]
+     */
+    public function getRegistrationPeriods(): array
+    {
+        if (empty($this->registrationPeriods)) {
+            (new CompsyClient())->fetchDetail($this);
+        }
+        return $this->registrationPeriods;
+    }
+
+    /**
+     * Return the end date of the last (most recent) registration period.
+     * Populate by calling CompsyClient::fetchDetail() first.
+     *
+     * @return \DateTimeImmutable|null  Null if no periods have been loaded.
+     */
+    public function getLastRegistrationEndDate(): ?\DateTimeImmutable
+    {
+        if (empty($this->registrationPeriods)) {
+            return null;
+        }
+
+        $latest = null;
+
+        foreach ($this->registrationPeriods as $period) {
+            $end = $period->getEndDate();
+            if ($latest === null || $end > $latest) {
+                $latest = $end;
+            }
+        }
+
+        return $latest;
     }
 
     /**
