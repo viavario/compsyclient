@@ -41,7 +41,7 @@ class CompsyClient
     {
         $html = $this->post(self::BASE_URL . self::SEARCH_PATH, $params);
 
-        return $this->parseHtml($html);
+        return $this->parseHtml($html, $params['registration_number'] ?? null);
     }
 
     /**
@@ -179,9 +179,10 @@ class CompsyClient
      * Parse the HTML response and extract psychologist results.
      *
      * @param  string $html
+     * @param  string|null $registrationNumber  Optional registration number to match in results.
      * @return CompsyResult|null
      */
-    private function parseHtml(string $html): ?CompsyResult
+    private function parseHtml(string $html, ?string $registrationNumber = null): ?CompsyResult
     {
         $dom = new \DOMDocument();
 
@@ -229,6 +230,7 @@ class CompsyClient
             $status      = $statusNodes && $statusNodes->length > 0 ? trim($statusNodes->item(0)->textContent) : '';
 
             return new CompsyResult(
+                $registrationNumber ?? '',
                 $name,
                 $detailUrl,
                 $status

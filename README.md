@@ -68,6 +68,7 @@ The result object returned by a successful search.
 
 | Property | Type | Description |
 |---|---|---|
+| `$registration_number` | `string` | The Compsy registration number |
 | `$name` | `string` | The psychologist's full name |
 | `$detailUrl` | `string` | Absolute URL to the psychologist's detail page on compsy.be |
 | `$status` | `string` | Registration status as returned by the Compsy website |
@@ -90,10 +91,11 @@ Returns the result as an associative array:
 
 ```php
 [
-    'name'       => 'Dr. Jane Doe',
-    'detail_url' => 'https://www.compsy.be/nl_BE/psychologist/jane-doe',
-    'status'     => 'Active',
-    'is_active'  => true,
+    'registration_number' => '99999999',
+    'name'                => 'Dr. Jane Doe',
+    'detail_url'          => 'https://www.compsy.be/nl_BE/psychologist/jane-doe',
+    'status'              => 'Active',
+    'is_active'           => true,
 ]
 ```
 

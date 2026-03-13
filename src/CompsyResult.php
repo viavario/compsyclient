@@ -9,7 +9,10 @@ namespace viavario\compsyclient;
  */
 class CompsyResult
 {
-        /** @var string */
+    /** @var string */
+    public $registrationNumber;
+
+    /** @var string */
     public $name;
 
     /** @var string */
@@ -22,15 +25,17 @@ class CompsyResult
     private $registrationPeriods = [];
 
     /**
-     * @param string $name      The psychologist's full name.
-     * @param string $detailUrl The absolute URL to the psychologist's detail page.
-     * @param string $status    The registration status as returned by the Compsy website.
+     * @param string $registrationNumber    The psychologist's Compsy registration number.
+     * @param string $name                  The psychologist's full name.
+     * @param string $detailUrl             The absolute URL to the psychologist's detail page.
+     * @param string $status                The registration status as returned by the Compsy website.
      */
-    public function __construct(string $name, string $detailUrl, string $status)
+    public function __construct(string $registrationNumber, string $name, string $detailUrl, string $status)
     {
-        $this->name      = $name;
-        $this->detailUrl = $detailUrl;
-        $this->status    = $status;
+        $this->registrationNumber = $registrationNumber;
+        $this->name               = $name;
+        $this->detailUrl          = $detailUrl;
+        $this->status             = $status;
     }
 
     /**
@@ -95,15 +100,16 @@ class CompsyResult
     /**
      * Returns the result as an associative array.
      *
-     * @return array{name: string, detail_url: string, status: string, is_active: bool}
+     * @return array{registration_number: string, name: string, detail_url: string, status: string, is_active: bool}
      */
     public function toArray(): array
     {
         return [
-            'name'       => $this->name,
-            'detail_url' => $this->detailUrl,
-            'status'     => $this->status,
-            'is_active'  => $this->isActive(),
+            'registration_number' => $this->registrationNumber,
+            'name'                => $this->name,
+            'detail_url'          => $this->detailUrl,
+            'status'              => $this->status,
+            'is_active'           => $this->isActive(),
         ];
     }
 }
